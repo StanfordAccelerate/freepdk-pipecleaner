@@ -1,8 +1,8 @@
-module DesignTopWrapper(
+module PointwiseWrapper(
   input clk,
   input rst, 
   input [15:0] in,
-  output [15:0] out,
+  output [15:0] out
 );
 
   reg [15:0] in_r;

@@ -5,8 +5,6 @@ file mkdir netlist
 
 remove_design -all
 
-define_design_lib DESIGN -path "DESIGN"
-
 #####################
 # Config Variables
 #####################
@@ -18,11 +16,14 @@ set RST  "rst"
 set DRIVER_CELL "INV_X1"
 set DR_CELL_OUT "ZN"
 
+set design "PointwiseWrapper"
+
+set CLK_PERIOD 10
 #####################
 # Path Variables
 #####################
-set SYN  /cad/synopsys/syn/M-2017.06-SP3/libraries/syn/
-set OPENCELL_45 ../tech/NangateOpenCellLibrary_PDKv1_3_v2010_12/
+set SYN /afs/ir/class/ee/synopsys/syn/M-2016.12-SP2/libraries/syn/
+set OPENCELL_45 /afs/ir/class/ee271/project/lib/NangateOpenCellLibrary_PDKv1_3_v2010_12/
 
 #####################
 # Set Design Library
@@ -42,12 +43,15 @@ set search_path [list ./ ../rtl/  $dw_lib $target_lib $sym_lib]
 ###################
 # Read Design
 ###################
-
-analyze -library RAST -format sverilog [glob ${RUNDIR}/genesis_synth/*.v]
-elaborate ${DESIGN_TARGET} -architecture verilog -library RAST
+set VERILOG_SRC [list]
+lappend VERILOG_SRC /afs/ir.stanford.edu/users/p/r/praina/freepdk-pipecleaner/verilog/pointwise_wrapper.v
+lappend VERILOG_SRC /afs/ir.stanford.edu/users/p/r/praina/freepdk-pipecleaner/verilog/pointwise.v
+define_design_lib WORK -path work
+analyze $VERILOG_SRC -autoread -top $design
+elaborate $design -arch verilog
 
 ##################################
-# Design Optimization Constraints
+# Optimization Constraints
 ##################################
 
 # create clock
@@ -68,7 +72,7 @@ set_input_delay -clock $CLK [ expr $CLK_PERIOD*3/4 ] $all_inputs_wo_rst_clk
 set_driving_cell -lib_cell $DRIVER_CELL -pin $DR_CELL_OUT [ get_ports "*" -filter {@port_direction == in} ]
 
 # set target die area
-set_max_area $TARGET_AREA
+#set_max_area $TARGET_AREA
 
 # set DC don't touch reset network
 remove_driving_cell $RST
